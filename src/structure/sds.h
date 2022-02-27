@@ -7,10 +7,16 @@
  * 存储字符串和整型数据
  * 整个结构分配的字节数等于len+free+1(\0)
  */
+
 #ifndef REDIS_DESIGN_SDS_H
 #define REDIS_DESIGN_SDS_H
 
-struct sds
+typedef char * sds;
+
+/*
+ * 保存字符串对象的结构
+ */
+struct sds_str
 {
     //记录buf数组中已使用字节的数量，等于SDS所保存字符串的长度
     int len;
@@ -20,13 +26,43 @@ struct sds
     char buf[];
 };
 
-struct _attribute_((_packed_))sdshdr5
+/*
+ * 根据保存的字符串指针
+ * 返回sds实际保存的字符串长度
+ *
+ * t = O(1)
+ */
+static inline size_t sds_len(const sds s)
 {
-    //低3位存储类型，高5位存储长度
-    unsigned char flags;
-    char buf[];
-};
+    struct sds_str * ssp = (s - (sizeof(struct sds_str)));
+    return ssp->len;
+}
 
+/*
+ * 同上
+ * 返回sds可用空间的长度
+ *
+ * t = O(1)
+ */
+static inline size_t sds_avail(const sds s)
+{
+    struct sds_str * ssp = (s - (sizeof(struct sds_str)));
+    return ssp->free;
+}
 
+sds sds_new_len(const void * init, size_t init_len);
+sds sds_new(const char * init);
+sds sds_empty(void);
+sds sds_dup(const sds s);
+
+/*
+ * redis5.0的更新。
+ */
+//struct __attribute__((_packed_))sdshdr5
+//{
+//    //低3位存储类型，高5位存储长度
+//    unsigned char flags;
+//    char buf[];
+//};
 
 #endif //REDIS_DESIGN_SDS_H
