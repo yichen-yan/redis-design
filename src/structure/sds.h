@@ -11,6 +11,9 @@
 #ifndef REDIS_DESIGN_SDS_H
 #define REDIS_DESIGN_SDS_H
 
+#include <sys/types.h>
+#include <stdarg.h>
+
 typedef char * sds;
 
 /*
@@ -51,9 +54,10 @@ static inline size_t sds_avail(const sds s)
 }
 
 sds sds_new_len(const void * init, size_t init_len);
-sds sds_new(const char * init);
+sds sds_new(const sds init);
 sds sds_empty(void);
 sds sds_dup(const sds s);
+void sds_free(sds s);
 
 /*
  * redis5.0的更新。
