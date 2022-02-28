@@ -137,7 +137,7 @@ sds sdsMakeRoomFor(sds s, size_t add_len)
 
     size_t len, new_len;
     len = sds_len(s);
-    ssp = s - sizeof(struct sds_str);
+    ssp = (void *)(s - sizeof(struct sds_str));
 
     //扩展后的最小长度
     new_len = len + add_len;
@@ -276,7 +276,7 @@ sds sds_grow_zero(sds s, size_t len)
 
     // 将新分配的空间用 0 填充，防止出现垃圾内容
     // T = O(N)
-    ssp = s - sizeof(struct sds_str);
+    ssp = (void *)(s - sizeof(struct sds_str));
     memset(s + cur_len, 0, (len - cur_len + 1));
 
     tot_len = ssp->len + ssp-> free;
@@ -331,7 +331,7 @@ sds sds_cat_len(sds s, const void * t, size_t len)
  */
 sds sds_cat(sds s, const char * t)
 {
-    sds_cat_len(s, t, strlen(t));
+    return sds_cat_len(s, t, strlen(t));
 }
 
 /*
@@ -345,7 +345,7 @@ sds sds_cat(sds s, const char * t)
  */
 sds sds_cat_sds(sds s, const sds t)
 {
-    sds_cat_len(s, t, sds_len(t));
+    return sds_cat_len(s, t, sds_len(t));
 }
 
 /*
@@ -401,7 +401,7 @@ sds sds_copy_len(sds s, const char * t, size_t len)
  */
 sds sds_copy(sds s, const char * t)
 {
-    sds_copy_len(s, t, strlen(t));
+    return sds_copy_len(s, t, strlen(t));
 }
 
 /*

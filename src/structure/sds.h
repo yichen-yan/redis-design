@@ -44,7 +44,7 @@ struct sds_str
  */
 static inline size_t sds_len(const sds s)
 {
-    struct sds_str * ssp = (s - (sizeof(struct sds_str)));
+    struct sds_str * ssp = (void *)(s - (sizeof(struct sds_str)));
     return ssp->len;
 }
 
@@ -56,7 +56,7 @@ static inline size_t sds_len(const sds s)
  */
 static inline size_t sds_avail(const sds s)
 {
-    struct sds_str * ssp = (s - (sizeof(struct sds_str)));
+    struct sds_str * ssp = (void *)(s - (sizeof(struct sds_str)));
     return ssp->free;
 }
 
