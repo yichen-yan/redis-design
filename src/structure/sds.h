@@ -11,6 +11,13 @@
 #ifndef REDIS_DESIGN_SDS_H
 #define REDIS_DESIGN_SDS_H
 
+/*
+ * 最大的预分配长度（字节）
+ * 小于该值，分配与当前的len属性值相同的空闲空间
+ * 大于该值，分配1MB
+ */
+#define SDS_MAX_PREALLOC (1024 * 1024)
+
 #include <sys/types.h>
 #include <stdarg.h>
 
@@ -58,6 +65,23 @@ sds sds_new(const sds init);
 sds sds_empty(void);
 sds sds_dup(const sds s);
 void sds_free(sds s);
+sds sds_grow_zero(sds s, size_t len);
+sds sds_cat_len(sds s, const void * t, size_t len);
+sds sds_cat(sds s, const char * t);
+sds sds_cat_sds(sds s, const sds t);
+sds sds_copy_len(sds s, const char * t, size_t len);
+sds sds_copy(sds s, const char * t);
+
+sds sds_trim(sds s, const char * c);
+void sds_range(sds s, int start, int end);
+void sds_clear(sds s);
+int sds_cmp(const sds s1, const sds s2);
+
+//Low level functions exposed to the user API
+sds sdsMakeRoomFor(sds s, size_t add_len);
+void sdsIncrLen(sds s, int incr);
+sds sdsRemoveFreeSpace(sds s);
+size_t sdsAllocSize(sds s);
 
 /*
  * redis5.0的更新。
