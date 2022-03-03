@@ -174,8 +174,28 @@ listNode * listSearchKey(list * lt, void * key)
     iter = listGetIterator(lt, AL_START_HEAD);
     while ( (node = listNext(iter)) != NULL)
     {
-
+        if (lt->match)
+        {
+            if (lt->match(node->value, key))
+            {
+                listReleaseIterator(iter);
+                //匹配成功
+                return node;
+            }
+        }
+        else
+        {
+            if (key == node->value)
+            {
+                listReleaseIterator(iter);
+                return node;
+            }
+        }
     }
+
+    listReleaseIterator(iter);
+
+    return NULL;
 }
 
 /**
@@ -288,5 +308,173 @@ list * listDup(list * lt)
     listIter * iter;
     listNode * node;
 
+    //创建链表
+    if ( (newList = listCreate()) == NULL)
+        return NULL;
 
+    //复制值处理函数
+    newList->dup = lt->dup;
+    newList->free = lt->free;
+    newList->match = lt->match;
+
+    //迭代整个链表
+    iter = listGetIterator(lt, AL_START_HEAD);
+    while ( (node = listNext(iter)) != NULL)
+    {
+        void * value;
+
+        //复制节点值到新节点
+        if (newList->dup)
+        {
+            value = lt->dup(node->value);
+            if (value == NULL)
+            {
+                listRelease(newList);
+                listReleaseIterator(iter);
+                return NULL;
+            }
+        }
+        else
+        {
+            value = node->value;
+        }
+
+        //将节点添加到链表
+        if (listAddNodeTail(newList, value) == NULL)
+        {
+            listRelease(newList);
+            listReleaseIterator(iter);
+            return NULL;
+        }
+    }
+
+    listReleaseIterator(iter);
+
+    return newList;
+}
+
+/**
+ * 释放整个链表，以及链表中的所有节点
+ *
+ * T = O(N)
+ *
+ * @param lt 要释放的链表
+ */
+void listRelease(list * lt)
+{
+    unsigned long len;
+    listNode * current, * next;
+
+    current = lt->head;
+    len = lt->len;
+    while (len--)
+    {
+        next = current->next;
+
+        //释放链表中的节点
+        if (lt->free)
+            lt->free(current->value);
+        z_free(current);
+
+        current = next;
+    }
+
+    //释放链表结构
+    z_free(lt);
+}
+
+/**
+ * 为给定链表创建一个迭代器，
+ * 之后每次对这个迭代器调用 listNext 都返回被迭代到的链表节点
+ *
+ * direction 参数决定了迭代器的迭代方向：
+ *  AL_START_HEAD ：从表头向表尾迭代
+ *  AL_START_TAIL ：从表尾想表头迭代
+ *
+ * T = O(1)
+ *
+ * @param lt 给定链表
+ * @param direction 迭代的方向
+ * @return 迭代器
+ */
+listIter * listGetIterator(list * lt, int direction)
+{
+    listIter * iter;
+    if ((iter = z_malloc(sizeof(listIter))) == NULL)
+        return NULL;
+
+    //根据迭代方向，设置迭代器的起始节点
+    if (direction == AL_START_HEAD)
+        iter->next = lt->head;
+    else
+        iter->next = lt->tail;
+
+    iter->direction = direction;
+
+    return iter;
+}
+
+/**
+ * 返回迭代器当前所指向的节点。
+ *
+ * 删除当前节点是允许的，但不能修改链表里的其他节点。
+ *
+ * T = O(1)
+ *
+ * @param iter 迭代器
+ * @return 迭代器指向的节点,失败则返回NULL。
+ */
+listNode * listNext(listIter * iter)
+{
+    listNode * node = iter->next;
+
+    if (node != NULL)
+    {
+        if (iter->direction == AL_START_HEAD)
+            iter->next = node->next;
+        else
+            iter->next = node->prev;
+    }
+
+    return node;
+}
+
+/**
+ * T = O(1)
+ *
+ * @param iter 要释放的迭代器
+ */
+void listReleaseIterator(listIter * iter)
+{
+    z_free(iter);
+}
+
+/**
+ * 将迭代器的方向设置为 AL_START_HEAD ，
+ * 并将迭代指针重新指向表头节点。
+ *
+ * T = O(1)
+ *
+ * @param list 目的链表
+ * @param iter 迭代器
+ */
+void listRewind(list * list, listIter * iter)
+{
+    iter->next = list->head;
+    iter->direction = AL_START_HEAD;
+}
+
+/**
+ * 将迭代器的方向设置为 AL_START_TAIL ，
+ * 并将迭代指针重新指向表尾节点。
+ *
+ * T = O(1)
+ *
+ * @param lt 目的链表
+ * @param iter 迭代器
+ */
+void listRewindTail(list * lt, listIter * iter)
+{
+    iter->next = lt->tail;
+    iter->direction = AL_START_TAIL;
 }
