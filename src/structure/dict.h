@@ -48,7 +48,7 @@ typedef struct dictType
     //销毁键的函数
     void (*keyDestructor)(void * privData, void * key);
     //销毁值的函数
-    void (*valDestructor)(void * privData. void * obj);
+    void (*valDestructor)(void * privData, void * obj);
 } dictType;
 
 /**
@@ -116,12 +116,12 @@ typedef void (dictScanFunction)(void * privData, const dictEntry * de);
 // 释放给定字典节点的值
 #define dictFreeVal(d, entry) \
     if ((d)->type->valDestructor) \
-        (d)->type->valDestructor((d)->privdata, (entry)->v.val)
+        (d)->type->valDestructor((d)->privData, (entry)->v.val)
 
 // 设置给定字典节点的值
 #define dictSetVal(d, entry, _val_) do { \
     if ((d)->type->valDup) \
-        entry->v.val = (d)->type->valDup((d)->privdata, _val_); \
+        entry->v.val = (d)->type->valDup((d)->privData, _val_); \
     else \
         entry->v.val = (_val_); \
 } while(0)
@@ -142,7 +142,7 @@ typedef void (dictScanFunction)(void * privData, const dictEntry * de);
 // 设置给定字典节点的键
 #define dictSetKey(d, entry, _key_) do { \
     if ((d)->type->keyDup) \
-        entry->key = (d)->type->keyDup((d)->privdata, _key_); \
+        entry->key = (d)->type->keyDup((d)->privData, _key_); \
     else \
         entry->key = (_key_); \
 } while(0)
@@ -168,7 +168,7 @@ typedef void (dictScanFunction)(void * privData, const dictEntry * de);
 // 返回字典的已有节点数量
 #define dictSize(d) ((d)->ht[0].used+(d)->ht[1].used)
 // 查看字典是否正在 rehash
-#define dictIsRehashing(ht) ((ht)->rehashindex != -1)
+#define dictIsRehashing(ht) ((ht)->rehashIndex != -1)
 
 /* API */
 dict * dictCreate(dictType * type, void * privDataPtr);
