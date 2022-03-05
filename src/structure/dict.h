@@ -137,7 +137,7 @@ typedef void (dictScanFunction)(void * privData, const dictEntry * de);
 // 释放给定字典节点的键
 #define dictFreeKey(d, entry) \
     if ((d)->type->keyDestructor) \
-        (d)->type->keyDestructor((d)->privdata, (entry)->key)
+        (d)->type->keyDestructor((d)->privData, (entry)->key)
 
 // 设置给定字典节点的键
 #define dictSetKey(d, entry, _key_) do { \
@@ -150,7 +150,7 @@ typedef void (dictScanFunction)(void * privData, const dictEntry * de);
 // 比对两个键
 #define dictCompareKeys(d, key1, key2) \
     (((d)->type->keyCompare) ? \
-        (d)->type->keyCompare((d)->privdata, key1, key2) : \
+        (d)->type->keyCompare((d)->privData, key1, key2) : \
         (key1) == (key2))
 
 // 计算给定键的哈希值
